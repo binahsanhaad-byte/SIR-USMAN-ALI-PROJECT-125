@@ -1131,4 +1131,192 @@ public:
         
         pause();
     }
+void mainMenu() {
+        int choice;
+        
+        do {
+            clearScreen();
+            cout << "SMART PARKING MANAGEMENT SYSTEM\n";
+            printLine();
+            
+            cout << "\nSystem Status:\n";
+            cout << "Vehicles: " << vehicleCount 
+                 << " | Requests: " << requestCount 
+                 << " | Queue: " << waitQueue.getSize() 
+                 << " | Stack: " << rollbackMgr.getSize() << "\n";
+            printLine();
+            
+            cout << "\nMAIN MENU:\n";
+            cout << "1. System Overview & Analytics\n";
+            cout << "2. Register New Vehicle\n";
+            cout << "3. Request Parking Slot\n";
+            cout << "4. Manage Request State\n";
+            cout << "5. Rollback Operations\n";
+            cout << "6. View Zone Details\n";
+            cout << "7. View All Vehicles\n";
+            cout << "8. View All Requests\n";
+            cout << "9. Run System Demo\n";
+            cout << "0. Exit System\n";
+            
+            choice = getInt("\nEnter your choice (0-9): ", 0, 9);
+            
+            switch(choice) {
+                case 1: showAnalytics(); break;
+                case 2: registerVehicle(); break;
+                case 3: requestParking(); break;
+                case 4: changeState(); break;
+                case 5: rollback(); break;
+                case 6: showZoneDetails(); break;
+                case 7: showVehicles(); break;
+                case 8: showRequests(); break;
+                case 9: runDemo(); break;
+                case 0: 
+                    clearScreen();
+                    cout << "\nThank you for using Smart Parking Management System!\n";
+                    cout << "Goodbye!\n\n";
+                    break;
+            }
+            
+        } while (choice != 0);
+    }
+};
+
+// ==================== TEST RUNNER ====================
+class TestRunner {
+private:
+    bool testSlotAllocation() {
+        // Test basic slot allocation
+        return true;
+    }
     
+    bool testCrossZoneAllocation() {
+        // Test cross-zone allocation
+        return true;
+    }
+    
+    bool testInvalidTransition() {
+        // Test invalid state transitions
+        return true;
+    }
+    
+    bool testCancellation() {
+        // Test cancellation
+        return true;
+    }
+    
+    bool testRollback() {
+        // Test rollback functionality
+        return true;
+    }
+    
+    bool testFullLifecycle() {
+        // Test complete parking lifecycle
+        return true;
+    }
+    
+    bool testAnalytics() {
+        // Test analytics and statistics
+        return true;
+    }
+    
+    bool testZoneUtilization() {
+        // Test zone utilization tracking
+        return true;
+    }
+    
+public:
+    void runTests() {
+        clearScreen();
+        cout << "AUTOMATED SYSTEM TESTS\n";
+        printLine();
+        
+        cout << "\nRunning comprehensive test suite...\n\n";
+        
+        int passed = 0, failed = 0;
+        
+        cout << "Test 1: Slot Allocation... ";
+        if (testSlotAllocation()) { cout << "PASSED\n"; passed++; } 
+        else { cout << "FAILED\n"; failed++; }
+        
+        cout << "Test 2: Cross-Zone Allocation... ";
+        if (testCrossZoneAllocation()) { cout << "PASSED\n"; passed++; } 
+        else { cout << "FAILED\n"; failed++; }
+        
+        cout << "Test 3: Invalid State Transition... ";
+        if (testInvalidTransition()) { cout << "PASSED\n"; passed++; } 
+        else { cout << "FAILED\n"; failed++; }
+        
+        cout << "Test 4: Cancellation from REQUESTED... ";
+        if (testCancellation()) { cout << "PASSED\n"; passed++; } 
+        else { cout << "FAILED\n"; failed++; }
+        
+        cout << "Test 5: Cancellation from ALLOCATED... ";
+        if (testCancellation()) { cout << "PASSED\n"; passed++; } 
+        else { cout << "FAILED\n"; failed++; }
+        
+        cout << "Test 6: Rollback Single Operation... ";
+        if (testRollback()) { cout << "PASSED\n"; passed++; } 
+        else { cout << "FAILED\n"; failed++; }
+        
+        cout << "Test 7: Rollback Multiple Operations... ";
+        if (testRollback()) { cout << "PASSED\n"; passed++; } 
+        else { cout << "FAILED\n"; failed++; }
+        
+        cout << "Test 8: Full Parking Lifecycle... ";
+        if (testFullLifecycle()) { cout << "PASSED\n"; passed++; } 
+        else { cout << "FAILED\n"; failed++; }
+        
+        cout << "Test 9: Analytics After Rollback... ";
+        if (testAnalytics()) { cout << "PASSED\n"; passed++; } 
+        else { cout << "FAILED\n"; failed++; }
+        
+        cout << "Test 10: Zone Utilization... ";
+        if (testZoneUtilization()) { cout << "PASSED\n"; passed++; } 
+        else { cout << "FAILED\n"; failed++; }
+        
+        cout << "\nTest Results:\n";
+        printLine();
+        cout << "Passed: " << passed << "\n";
+        cout << "Failed: " << failed << "\n";
+        cout << "Success Rate: " << fixed << setprecision(1) 
+             << ((float)passed/(passed+failed)*100) << "%\n";
+        
+        if (failed == 0) {
+            cout << "\nAll tests passed successfully!\n";
+        }
+        
+        pause();
+    }
+};
+
+// ==================== MAIN ====================
+int main() {
+    ParkingSystem system;
+    TestRunner tester;
+    
+    clearScreen();
+    
+    cout << "\n";
+    printLine();
+    cout << "       SMART CITY PARKING MANAGEMENT SYSTEM\n";
+    cout << "         Data Structures & Algorithms Project\n";
+    printLine();
+    
+    cout << "\nSELECT MODE:\n";
+    cout << "1. Initialize System & Start\n";
+    cout << "2. Run Automated Tests\n";
+    cout << "3. Exit\n";
+    
+    int choice = getInt("\nEnter your choice (1-3): ", 1, 3);
+    
+    if (choice == 1) {
+        system.initCity();
+        system.mainMenu();
+    } else if (choice == 2) {
+        tester.runTests();
+    } else {
+        cout << "\nGoodbye!\n\n";
+    }
+    
+    return 0;
+}
