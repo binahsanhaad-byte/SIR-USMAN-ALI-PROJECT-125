@@ -170,3 +170,111 @@ public:
         cout << "  Area " << areaID << ": " << availableSlots << "/" << totalSlots << " slots available\n";
     }
 };
+// ==================== ZONE ====================
+class Zone {
+private:
+    int zoneID;
+    string name;
+    ParkingArea areas[5];
+    int areaCount;
+    int adjacentZones[MAX_ZONES];
+    int adjacentCount;
+    int totalSlots, availableSlots;
+    
+public:
+    Zone() : zoneID(-1), name(""), areaCount(0), adjacentCount(0),
+             totalSlots(0), availableSlots(0) {}
+    
+    void init(int id, string n, int numAreas, int* areaCapacities) {
+        zoneID = id;
+        name = n;
+        areaCount = numAreas;
+        adjacentCount = 0;
+        totalSlots = 0;
+        availableSlots = 0;
+        
+        for (int i = 0; i < areaCount; i++) {
+            areas[i].init(i, zoneID, areaCapacities[i]);
+            totalSlots += areaCapacities[i];
+            availableSlots += areaCapacities[i];
+        }
+    }
+    
+    void addAdjacent(int zID) {
+        if (adjacentCount < MAX_ZONES) {
+            adjacentZones[adjacentCount++] = zID;
+        }
+    }
+    
+    bool hasSlots() { return availableSlots > 0; }
+    
+    ParkingSlot* findSlot() {
+        for (int i = 0; i < areaCount; i++) {
+            ParkingSlot* slot = areas[i].findSlot();
+            if (slot) return slot;
+        }
+        return nullptr;
+    }
+    
+    void occupySlot(ParkingSlot* slot, int vID) {
+        areas[slot->getAreaID()].occupySlot(slot->getSlotID(), vID);
+        availableSlots--;
+    }
+    
+    bool releaseSlot(int areaID, int slotID) {
+        if (areaID >= 0 && areaID < areaCount) {
+            if (areas[areaID].releaseSlot(slotID)) {
+                availableSlots++;
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    int getID() { return zoneID; }
+    string getName() { return name; }
+    int getAvailable() { return availableSlots; }
+    int getTotal() { return totalSlots; }
+    int getAdjacentCount() { return adjacentCount; }
+    int getAdjacent(int i) { return adjacentZones[i]; }
+    
+    float getOccupancyRate() {
+        if (totalSlots == 0) return 0;
+        return ((float)(totalSlots - availableSlots) / totalSlots) * 100;
+    }
+    
+    void display() {
+        cout << "Zone " << zoneID << ": " << name << " - " 
+             << availableSlots << "/" << totalSlots << " slots available ("
+             << fixed << setprecision(1) << getOccupancyRate() << "% occupied)\n";
+        
+        if (adjacentCount > 0) {
+            cout << "  Adjacent Zones: ";
+            for (int i = 0; i < adjacentCount; i++) {
+                cout << adjacentZones[i];
+                if (i < adjacentCount - 1) cout << ", ";
+            }
+            cout << "\n";
+        }
+    }
+    
+    void displayDetailed() {
+        cout << "\n=== Zone " << zoneID << ": " << name << " ===\n";
+        cout << "Total Capacity: " << totalSlots << " slots\n";
+        cout << "Available: " << availableSlots << " slots\n";
+        cout << "Occupancy Rate: " << fixed << setprecision(1) << getOccupancyRate() << "%\n";
+        cout << "\nAreas:\n";
+        for (int i = 0; i < areaCount; i++) {
+            areas[i].display();
+        }
+        
+        if (adjacentCount > 0) {
+            cout << "\nAdjacent Zones: ";
+            for (int i = 0; i < adjacentCount; i++) {
+                cout << adjacentZones[i];
+                if (i < adjacentCount - 1) cout << ", ";
+            }
+            cout << "\n";
+        }
+    }
+};
