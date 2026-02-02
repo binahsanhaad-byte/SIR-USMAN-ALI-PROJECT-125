@@ -53,3 +53,31 @@ string getString(string prompt) {
     cin >> value;
     return value;
 }
+// ==================== TIME STAMP ====================
+class TimeStamp {
+private:
+    time_t timestamp;
+    
+public:
+    TimeStamp() {
+        timestamp = time(0);
+    }
+    
+    float getHoursDiff(TimeStamp& other) {
+        return abs(difftime(timestamp, other.timestamp)) / 3600.0f;
+    }
+    
+    void display() {
+        tm* ltm = localtime(&timestamp);
+        cout << setfill('0') << setw(2) << ltm->tm_hour << ":"
+             << setw(2) << ltm->tm_min << ":" << setw(2) << ltm->tm_sec;
+        cout << setfill(' ');
+    }
+    
+    string toString() {
+        tm* ltm = localtime(&timestamp);
+        char buffer[9];
+        sprintf(buffer, "%02d:%02d:%02d", ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
+        return string(buffer);
+    }
+};
