@@ -278,3 +278,196 @@ public:
         }
     }
 };
+// ==================== VEHICLE ====================
+class Vehicle {
+private:
+    int id;
+    string plate;
+    int preferredZone;
+    bool active;
+    
+public:
+    Vehicle() : id(-1), plate(""), preferredZone(-1), active(false) {}
+    
+    void init(int i, string p, int z) {
+        id = i;
+        plate = p;
+        preferredZone = z;
+        active = true;
+    }
+    
+    int getID() { return id; }
+    string getPlate() { return plate; }
+    int getPreferredZone() { return preferredZone; }
+    bool isActive() { return active; }
+    
+    void display() {
+        cout << "Vehicle ID: " << id << " | Plate: " << plate 
+             << " | Preferred Zone: " << preferredZone << "\n";
+    }
+};
+
+// ==================== PARKING REQUEST ====================
+class ParkingRequest {
+private:
+    int requestID, vehicleID, requestedZone;
+    int allocatedZone, allocatedArea, allocatedSlot;
+    RequestState state;
+    float penalty;
+    TimeStamp requestTime, allocationTime, releaseTime;
+    
+public:
+    ParkingRequest() : requestID(-1), vehicleID(-1), requestedZone(-1),
+                       allocatedZone(-1), allocatedArea(-1), allocatedSlot(-1),
+                       state(REQUESTED), penalty(0) {}
+    
+    void init(int rID, int vID, int zone) {
+        requestID = rID;
+        vehicleID = vID;
+        requestedZone = zone;
+        allocatedZone = -1;
+        allocatedArea = -1;
+        allocatedSlot = -1;
+        state = REQUESTED;
+        penalty = 0;
+        requestTime = TimeStamp();
+    }
+    
+    bool canTransition(RequestState newState) {
+        if (state == REQUESTED && (newState == ALLOCATED || newState == CANCELLED)) return true;
+        if (state == ALLOCATED && (newState == OCCUPIED || newState == CANCELLED)) return true;
+        if (state == OCCUPIED && newState == RELEASED) return true;
+        return false;
+    }
+    
+    bool changeState(RequestState newState) {
+        if (!canTransition(newState)) return false;
+        
+        if (newState == ALLOCATED) allocationTime = TimeStamp();
+        if (newState == RELEASED || newState == CANCELLED) releaseTime = TimeStamp();
+        
+        state = newState;
+        return true;
+    }
+    
+    void setAllocation(int z, int a, int s, float p) {
+        allocatedZone = z;
+        allocatedArea = a;
+        allocatedSlot = s;
+        penalty = p;
+    }
+    
+    int getRequestID() { return requestID; }
+    int getVehicleID() { return vehicleID; }
+    int getRequestedZone() { return requestedZone; }
+    int getAllocatedZone() { return allocatedZone; }
+    int getAllocatedArea() { return allocatedArea; }
+    int getAllocatedSlot() { return allocatedSlot; }
+    RequestState getState() { return state; }
+    float getPenalty() { return penalty; }
+    
+    void setState(RequestState s) { state = s; }
+    
+    bool isCrossZone() { 
+        return allocatedZone != requestedZone && allocatedZone != -1; 
+    }
+    
+    float getDuration() {
+        if (state == RELEASED) {
+            return requestTime.getHoursDiff(releaseTime);
+        }
+        return 0;
+    }
+    
+    string getStateString() {
+        switch(state) {
+            case REQUESTED: return "REQUESTED";
+            case ALLOCATED: return "ALLOCATED";
+            case OCCUPIED: return "OCCUPIED";
+            case RELEASED: return "RELEASED";
+            case CANCELLED: return "CANCELLED";
+        }
+        return "UNKNOWN";
+    }
+    
+    void display() {
+        printLine();
+        cout << "Request ID: " << requestID << "\n";
+        cout << "Vehicle ID: " << vehicleID << "\n";
+        cout << "State: " << getStateString() << "\n";
+        cout << "Requested Zone: " << requestedZone << "\n";
+        
+        if (allocatedSlot != -1) {
+            cout << "Allocated Location: Zone " << allocatedZone 
+                 << ", Area " << allocatedArea << ", Slot " << allocatedSlot;
+            if (isCrossZone()) {
+                cout << " (Cross-Zone Allocation)";
+            }
+            cout << "\n";
+            if (penalty > 0) {
+                cout << "Penalty: $" << fixed << setprecision(2) << penalty << "\n";
+            }
+        }
+        
+        if (state == RELEASED) {
+            cout << "Parking Duration: " << fixed << setprecision(2) 
+                 << getDuration() << " hours\n";
+        }
+        printLine();
+    }
+};
+
+// ==================== REQUEST HISTORY (LINKED LIST) ====================
+class RequestHistory {
+private:
+    struct Node {
+        ParkingRequest req;
+        Node* next;
+        
+        Node(ParkingRequest& r) : req(r), next(nullptr) {}
+    };
+    
+    Node* head;
+    int count;
+    
+public:
+    RequestHistory() : head(nullptr), count(0) {}
+    
+    ~RequestHistory() {
+        while (head) {
+            Node* temp = head;
+            head = head->next;
+            delete temp;
+        }
+    }
+    
+    void add(ParkingRequest& req) {
+        Node* newNode = new Node(req);
+        newNode->next = head;
+        head = newNode;
+        count++;
+    }
+    
+    void getStats(int& completed, int& cancelled, int& crossZone, float& avgDuration) {
+        completed = 0;
+        cancelled = 0;
+        crossZone = 0;
+        float totalDuration = 0;
+        
+        Node* curr = head;
+        while (curr) {
+            if (curr->req.getState() == RELEASED) {
+                completed++;
+                totalDuration += curr->req.getDuration();
+                if (curr->req.isCrossZone()) crossZone++;
+            } else if (curr->req.getState() == CANCELLED) {
+                cancelled++;
+            }
+            curr = curr->next;
+        }
+        
+        avgDuration = (completed > 0) ? totalDuration / completed : 0;
+    }
+    
+    int getCount() { return count; }
+};
