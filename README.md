@@ -471,3 +471,134 @@ public:
     
     int getCount() { return count; }
 };
+// ==================== WAITING QUEUE ====================
+class WaitingQueue {
+private:
+    struct Node {
+        int vehicleID, zone;
+        TimeStamp addedTime;
+        Node* next;
+        Node(int v, int z) : vehicleID(v), zone(z), next(nullptr) {}
+    };
+    
+    Node* front;
+    Node* rear;
+    int size;
+    
+public:
+    WaitingQueue() : front(nullptr), rear(nullptr), size(0) {}
+    
+    ~WaitingQueue() {
+        while (front) {
+            Node* temp = front;
+            front = front->next;
+            delete temp;
+        }
+    }
+    
+    void enqueue(int vID, int zone) {
+        Node* node = new Node(vID, zone);
+        if (!rear) {
+            front = rear = node;
+        } else {
+            rear->next = node;
+            rear = node;
+        }
+        size++;
+    }
+    
+    bool dequeue(int& vID, int& zone) {
+        if (!front) return false;
+        
+        vID = front->vehicleID;
+        zone = front->zone;
+        
+        Node* temp = front;
+        front = front->next;
+        if (!front) rear = nullptr;
+        
+        delete temp;
+        size--;
+        return true;
+    }
+    
+    int getSize() { return size; }
+    bool isEmpty() { return size == 0; }
+    
+    void display() {
+        if (size == 0) {
+            cout << "Waiting Queue: Empty\n";
+            return;
+        }
+        
+        cout << "Waiting Queue (" << size << " vehicles):\n";
+        printLine();
+        Node* curr = front;
+        int pos = 1;
+        while (curr) {
+            cout << pos++ << ". Vehicle ID: " << curr->vehicleID 
+                 << " | Zone: " << curr->zone 
+                 << " | Added: " << curr->addedTime.toString() << "\n";
+            curr = curr->next;
+        }
+    }
+};
+
+// ==================== ROLLBACK MANAGER (STACK) ====================
+struct RollbackEntry {
+    int requestID, zone, area, slot;
+    RequestState prevState;
+    TimeStamp timestamp;
+    
+    RollbackEntry() : requestID(-1), zone(-1), area(-1), 
+                      slot(-1), prevState(REQUESTED) {}
+    
+    RollbackEntry(int r, int z, int a, int s, RequestState st) :
+        requestID(r), zone(z), area(a), slot(s), prevState(st) {}
+};
+
+class RollbackManager {
+private:
+    RollbackEntry stack[MAX_ROLLBACK];
+    int top;
+    
+public:
+    RollbackManager() : top(-1) {}
+    
+    bool push(RollbackEntry& entry) {
+        if (top >= MAX_ROLLBACK - 1) {
+            cout << "Error: Rollback stack is full!\n";
+            return false;
+        }
+        stack[++top] = entry;
+        return true;
+    }
+    
+    bool pop(RollbackEntry& entry) {
+        if (top < 0) return false;
+        entry = stack[top--];
+        return true;
+    }
+    
+    int getSize() { return top + 1; }
+    bool isEmpty() { return top < 0; }
+    
+    void display() {
+        if (isEmpty()) {
+            cout << "Rollback Stack: Empty\n";
+            return;
+        }
+        
+        cout << "Rollback Stack (" << getSize() << " operations):\n";
+        printLine();
+        for (int i = top; i >= 0 && i > top - 10; i--) {
+            cout << (top - i + 1) << ". Request " << stack[i].requestID 
+                 << " | Zone " << stack[i].zone << ", Area " << stack[i].area 
+                 << ", Slot " << stack[i].slot 
+                 << " | Time: " << stack[i].timestamp.toString() << "\n";
+        }
+        if (top >= 10) {
+            cout << "... and " << (top - 9) << " more operations\n";
+        }
+    }
+};
